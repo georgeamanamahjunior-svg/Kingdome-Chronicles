@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kingdom Chronicles — Christian Ebook Store</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #faf8f4; }
+  input, select, textarea, button { font-family: 'Inter', sans-serif; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const ADMIN_PASSWORD = "George12";
+
+const initialBooks = [
+  {
+    id: 1,
+    title: "From Hammer to Pen",
+    subtitle: "The Transition from Persecutor to Writer",
+    price: 0,
+    description: "Before he was the Apostle of Grace, he was the Architect of the Absolute. A powerful journey of transformation from history's most formidable antagonist into its most tireless messenger.",
+    cover: null,
+    category: "Christian Fantasy",
+  },
+  {
+    id: 2,
+    title: "The First Shadow",
+    subtitle: "A Novel of Two Brothers",
+    price: 0,
+    description: "Two brothers. Two sacrifices. One shadow that would darken the world for generations. An epic tale of envy, innovation, and the enduring battle between a heart of iron and a heart of flesh.",
+    cover: null,
+    category: "Christian Fantasy",
+  },
+];
+
+const Cross = ({ size = 24, color = "#b8860b" }) => (
+  React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none" },
+    React.createElement('rect', { x: "10", y: "2", width: "4", height: "20", rx: "1.5", fill: color }),
+    React.createElement('rect', { x: "2", y: "8", width: "20", height: "4", rx: "1.5", fill: color })
+  )
+);
+
+const BookPlaceholder = ({ title, subtitle }) => (
+  React.createElement('div', {
+    style: {
+      width: "100%", height: "100%",
+      background: "linear-gradient(145deg,#f8f4ee 0%,#ede8df 50%,#e8e0d0 100%)",
+      display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center",
+      padding: "24px", textAlign: "center",
+    }
+  },
+    React.createElement('div', { style: { marginBottom: "14px", opacity: 0.5 } },
+      React.createElement(Cross, { size: 28, color: "#b8860b" })
+    ),
+    React.createElement('div', {
+      style: { fontFamily: "Georgia,serif", fontSize: "0.95rem", fontWeight: "700", color: "#5a3e1b", lineHeight: 1.3, marginBottom: "8px" }
+    }, title),
+    React.createElement('div', {
+      style: { fontSize: "0.7rem", color: "rgba(90,62,27,0.5)", fontStyle: "italic", marginBottom: "16px" }
+    }, subtitle),
+    React.createElement('div', {
+      style: { fontSize: "0.62rem", color: "rgba(90,62,27,0.35)", letterSpacing: "2px", textTransform: "uppercase" }
+    }, "Cover Coming Soon")
+  )
+);
+
+const CheckoutModal = ({ book, onClose }) => {
+  const [step, setStep] = React.useState("form");
+  const [method, setMethod] = React.useState("momo");
+  const [phone, setPhone] = React.useState("");
+  const [network, setNetwork] = React.useState("MTN");
+  const [email, setEmail] = React.useState("");
+  const [name, setName] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
+
+  const handlePay = () => {
+    if (!name.trim()) { setError("Please enter your name."); return; }
+    if (!email.trim() || !email.includes("@")) { setError("Please enter a valid email."); return; }
+    if (method === "momo" && phone.length < 10) { setError("Please enter a valid phone number."); return; }
+    setError(""); setLoading(true);
+    setTimeout(() => { setLoading(false); setStep("success"); }, 2000);
+  };
+
+  const iStyle = {
+    width: "100%", padding: "12px 16px", borderRadius: "12px",
+    background: "rgba(255,255,255,0.9)", border: "1.5px solid rgba(184,134,11,0.2)",
+    color: "#1a1a1a", fontSize: "0.9rem", outline: "none", marginBottom: "14px",
+  };
+
+  return React.createElement('div', {
+    style: {
+      position: "fixed", inset: 0, zIndex: 1000,
+      background: "rgba(255,255,255,0.5)", backdropFilter: "blur(12px)",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: "20px",
+    }, onClick: onClose
+  },
+    React.createElement('div', {
+      style: {
+        background: "rgba(255,255,255,0.95)", backdropFilter: "blur(30px)",
+        border: "1px solid rgba(184,134,11,0.25)", borderRadius: "28px",
+        padding: "38px", maxWidth: "420px", width: "100%",
+        boxShadow: "0 32px 80px rgba(0,0,0,0.12)",
+      }, onClick: e => e.stopPropagation()
+    },
+      step === "form" ? React.createElement(React.Fragment, null,
+        React.createElement('div', { style: { textAlign: "center", marginBottom: "28px" } },
+          React.createElement('div', { style: { marginBottom: "10px" } }, React.createElement(Cross, { size: 28 })),
+          React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "1.2rem", fontWeight: "700", color: "#1a1a1a", marginBottom: "4px" } }, book.title),
+          React.createElement('div', { style: { fontSize: "0.82rem", color: "#888", fontStyle: "italic", marginBottom: "12px" } }, book.subtitle),
+          React.createElement('div', { style: { fontSize: "1.7rem", fontWeight: "700", color: "#b8860b" } }, `GH₵ ${book.price.toFixed(2)}`)
+        ),
+        React.createElement('div', { style: { display: "flex", gap: "10px", marginBottom: "20px" } },
+          ["momo", "card"].map(m =>
+            React.createElement('button', {
+              key: m, onClick: () => setMethod(m),
+              style: {
+                flex: 1, padding: "10px", borderRadius: "12px",
+                border: method === m ? "2px solid #b8860b" : "1.5px solid rgba(0,0,0,0.1)",
+                background: method === m ? "rgba(184,134,11,0.08)" : "rgba(255,255,255,0.6)",
+                color: method === m ? "#b8860b" : "#888",
+                fontWeight: "600", fontSize: "0.82rem", cursor: "pointer",
+              }
+            }, m === "momo" ? "📱 Mobile Money" : "💳 Card")
+          )
+        ),
+        React.createElement('div', null,
+          React.createElement('label', { style: { display: "block", fontSize: "0.75rem", color: "#888", marginBottom: "5px" } }, "Full Name"),
+          React.createElement('input', { type: "text", value: name, onChange: e => setName(e.target.value), placeholder: "Your full name", style: iStyle })
+        ),
+        React.createElement('div', null,
+          React.createElement('label', { style: { display: "block", fontSize: "0.75rem", color: "#888", marginBottom: "5px" } }, "Email Address"),
+          React.createElement('input', { type: "email", value: email, onChange: e => setEmail(e.target.value), placeholder: "your@email.com", style: iStyle })
+        ),
+        method === "momo" ? React.createElement(React.Fragment, null,
+          React.createElement('div', null,
+            React.createElement('label', { style: { display: "block", fontSize: "0.75rem", color: "#888", marginBottom: "5px" } }, "Network"),
+            React.createElement('select', { value: network, onChange: e => setNetwork(e.target.value), style: iStyle },
+              React.createElement('option', null, "MTN MoMo"),
+              React.createElement('option', null, "Telecel Cash"),
+              React.createElement('option', null, "AirtelTigo Money")
+            )
+          ),
+          React.createElement('div', null,
+            React.createElement('label', { style: { display: "block", fontSize: "0.75rem", color: "#888", marginBottom: "5px" } }, "MoMo Number"),
+            React.createElement('input', { type: "tel", value: phone, onChange: e => setPhone(e.target.value), placeholder: "0XX XXX XXXX", style: iStyle })
+          )
+        ) : null,
+        error ? React.createElement('div', { style: { color: "#e53e3e", fontSize: "0.8rem", marginBottom: "12px", textAlign: "center" } }, error) : null,
+        React.createElement('button', {
+          onClick: handlePay, disabled: loading,
+          style: {
+            width: "100%", padding: "14px", borderRadius: "14px",
+            background: loading ? "rgba(184,134,11,0.4)" : "linear-gradient(135deg,#b8860b,#d4a017)",
+            color: "#fff", border: "none", fontSize: "0.95rem", fontWeight: "700", cursor: loading ? "wait" : "pointer",
+            boxShadow: loading ? "none" : "0 6px 24px rgba(184,134,11,0.3)",
+          }
+        }, loading ? "Processing..." : `Pay GH₵ ${book.price.toFixed(2)}`),
+        React.createElement('button', {
+          onClick: onClose,
+          style: { width: "100%", padding: "10px", marginTop: "8px", background: "transparent", border: "none", color: "#aaa", fontSize: "0.82rem", cursor: "pointer" }
+        }, "Cancel")
+      ) : React.createElement('div', { style: { textAlign: "center", padding: "20px 0" } },
+        React.createElement('div', { style: { fontSize: "3.5rem", marginBottom: "16px" } }, "✅"),
+        React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "1.3rem", fontWeight: "700", color: "#b8860b", marginBottom: "10px" } }, "Payment Successful!"),
+        React.createElement('div', { style: { fontSize: "0.9rem", color: "#666", lineHeight: 1.8, marginBottom: "24px" } },
+          "Thank you! Your download link has been sent to ",
+          React.createElement('span', { style: { color: "#b8860b", fontWeight: "600" } }, email)
+        ),
+        React.createElement('button', {
+          onClick: onClose,
+          style: { padding: "12px 32px", borderRadius: "30px", background: "linear-gradient(135deg,#b8860b,#d4a017)", color: "#fff", border: "none", fontWeight: "700", fontSize: "0.9rem", cursor: "pointer" }
+        }, "Close")
+      )
+    )
+  );
+};
+
+const AdminPanel = ({ books, setBooks, onClose }) => {
+  const [selected, setSelected] = React.useState(books[0]);
+  const [title, setTitle] = React.useState(books[0].title);
+  const [subtitle, setSubtitle] = React.useState(books[0].subtitle);
+  const [price, setPrice] = React.useState(books[0].price || "");
+  const [description, setDescription] = React.useState(books[0].description);
+  const [cover, setCover] = React.useState(books[0].cover);
+  const [saved, setSaved] = React.useState(false);
+  const [tab, setTab] = React.useState("books");
+
+  const selectBook = (book) => {
+    setSelected(book); setTitle(book.title); setSubtitle(book.subtitle);
+    setPrice(book.price || ""); setDescription(book.description); setCover(book.cover); setSaved(false);
+  };
+
+  const handleCover = (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => setCover(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = () => {
+    setBooks(prev => prev.map(b => b.id === selected.id
+      ? { ...b, title, subtitle, price: parseFloat(price) || 0, description, cover } : b));
+    setSaved(true); setTimeout(() => setSaved(false), 2500);
+  };
+
+  const handleAddBook = () => {
+    const nb = { id: Date.now(), title: "New Book Title", subtitle: "Subtitle here", price: 0, description: "Description here.", cover: null, category: "Christian Fantasy" };
+    setBooks(prev => [...prev, nb]); selectBook(nb); setTab("books");
+  };
+
+  const handleDelete = () => {
+    if (books.length <= 1) return;
+    const remaining = books.filter(b => b.id !== selected.id);
+    setBooks(remaining); selectBook(remaining[0]);
+  };
+
+  const iStyle = {
+    width: "100%", padding: "11px 14px", borderRadius: "10px",
+    background: "rgba(255,255,255,0.8)", border: "1.5px solid rgba(184,134,11,0.15)",
+    color: "#1a1a1a", fontSize: "0.88rem", outline: "none", marginBottom: "14px",
+  };
+
+  const lStyle = { display: "block", fontSize: "0.73rem", color: "#999", marginBottom: "5px", letterSpacing: "0.5px" };
+
+  return React.createElement('div', {
+    style: {
+      position: "fixed", inset: 0, zIndex: 2000,
+      background: "rgba(255,255,255,0.7)", backdropFilter: "blur(16px)",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: "16px",
+    }
+  },
+    React.createElement('div', {
+      style: {
+        background: "rgba(255,255,255,0.97)", backdropFilter: "blur(40px)",
+        border: "1px solid rgba(184,134,11,0.2)", borderRadius: "28px",
+        width: "100%", maxWidth: "860px", maxHeight: "92vh", overflow: "hidden",
+        display: "flex", flexDirection: "column",
+        boxShadow: "0 40px 100px rgba(0,0,0,0.12)",
+      }
+    },
+      React.createElement('div', {
+        style: {
+          padding: "22px 30px", borderBottom: "1px solid rgba(0,0,0,0.06)",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          background: "rgba(184,134,11,0.04)",
+        }
+      },
+        React.createElement('div', { style: { display: "flex", alignItems: "center", gap: "12px" } },
+          React.createElement(Cross, { size: 24 }),
+          React.createElement('div', null,
+            React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "1.1rem", fontWeight: "700", color: "#b8860b" } }, "Admin Dashboard"),
+            React.createElement('div', { style: { fontSize: "0.68rem", color: "#bbb", letterSpacing: "2px", textTransform: "uppercase" } }, "Kingdom Chronicles")
+          )
+        ),
+        React.createElement('button', {
+          onClick: onClose,
+          style: { background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.08)", color: "#666", borderRadius: "10px", padding: "8px 16px", cursor: "pointer", fontSize: "0.82rem" }
+        }, "← Back to Store")
+      ),
+      React.createElement('div', { style: { display: "flex", borderBottom: "1px solid rgba(0,0,0,0.06)" } },
+        ["books", "add"].map(t =>
+          React.createElement('button', {
+            key: t, onClick: () => setTab(t),
+            style: {
+              padding: "14px 24px", background: "transparent", border: "none",
+              borderBottom: tab === t ? "2px solid #b8860b" : "2px solid transparent",
+              color: tab === t ? "#b8860b" : "#aaa",
+              fontSize: "0.8rem", fontWeight: "600", cursor: "pointer", letterSpacing: "0.5px", textTransform: "uppercase",
+            }
+          }, t === "books" ? "📚 Manage Books" : "➕ Add New Book")
+        )
+      ),
+      React.createElement('div', { style: { display: "flex", flex: 1, overflow: "hidden" } },
+        tab === "books" ? React.createElement(React.Fragment, null,
+          React.createElement('div', {
+            style: {
+              width: "210px", flexShrink: 0, borderRight: "1px solid rgba(0,0,0,0.06)",
+              overflowY: "auto", padding: "14px", background: "rgba(250,248,245,0.8)",
+            }
+          },
+            books.map(book =>
+              React.createElement('div', {
+                key: book.id, onClick: () => selectBook(book),
+                style: {
+                  padding: "12px", borderRadius: "12px", marginBottom: "8px", cursor: "pointer",
+                  background: selected.id === book.id ? "rgba(184,134,11,0.08)" : "rgba(255,255,255,0.6)",
+                  border: selected.id === book.id ? "1.5px solid rgba(184,134,11,0.3)" : "1px solid rgba(0,0,0,0.06)",
+                }
+              },
+                React.createElement('div', {
+                  style: {
+                    height: "65px", borderRadius: "8px", marginBottom: "8px", overflow: "hidden",
+                    background: book.cover ? `url(${book.cover}) center/cover` : "linear-gradient(135deg,#f0ece4,#e8e0d0)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }
+                }, !book.cover ? React.createElement(Cross, { size: 18, color: "#b8860b" }) : null),
+                React.createElement('div', { style: { fontSize: "0.76rem", fontWeight: "600", color: selected.id === book.id ? "#b8860b" : "#333", lineHeight: 1.3 } }, book.title),
+                React.createElement('div', { style: { fontSize: "0.68rem", color: "#aaa", marginTop: "3px" } },
+                  book.price > 0 ? `GH₵ ${book.price.toFixed(2)}` : "No price set"
+                )
+              )
+            )
+          ),
+          React.createElement('div', { style: { flex: 1, overflowY: "auto", padding: "26px" } },
+            React.createElement('div', { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "22px" } },
+              React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "1rem", fontWeight: "700", color: "#b8860b" } }, "Edit Book Details"),
+              React.createElement('button', {
+                onClick: handleDelete,
+                style: { background: "rgba(229,57,53,0.06)", border: "1px solid rgba(229,57,53,0.15)", color: "rgba(229,57,53,0.7)", borderRadius: "8px", padding: "6px 14px", cursor: "pointer", fontSize: "0.75rem" }
+              }, "🗑 Remove")
+            ),
+            React.createElement('label', { style: lStyle }, "Book Cover Image"),
+            React.createElement('div', {
+              style: {
+                height: "150px", borderRadius: "14px", marginBottom: "10px", overflow: "hidden",
+                background: cover ? `url(${cover}) center/cover` : "rgba(184,134,11,0.03)",
+                border: "2px dashed rgba(184,134,11,0.2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }
+            },
+              !cover ? React.createElement('div', { style: { textAlign: "center" } },
+                React.createElement('div', { style: { fontSize: "2rem", marginBottom: "8px" } }, "🖼"),
+                React.createElement('div', { style: { fontSize: "0.76rem", color: "#bbb" } }, "No cover uploaded yet")
+              ) : null
+            ),
+            React.createElement('label', {
+              style: {
+                display: "block", padding: "10px 16px", borderRadius: "10px",
+                background: "rgba(184,134,11,0.07)", border: "1.5px solid rgba(184,134,11,0.2)",
+                color: "#b8860b", fontSize: "0.82rem", fontWeight: "600", cursor: "pointer", textAlign: "center", marginBottom: "18px",
+              }
+            },
+              "📤 Upload Cover Image",
+              React.createElement('input', { type: "file", accept: "image/*", onChange: handleCover, style: { display: "none" } })
+            ),
+            React.createElement('label', { style: lStyle }, "Book Title"),
+            React.createElement('input', { value: title, onChange: e => setTitle(e.target.value), style: iStyle }),
+            React.createElement('label', { style: lStyle }, "Subtitle"),
+            React.createElement('input', { value: subtitle, onChange: e => setSubtitle(e.target.value), style: iStyle }),
+            React.createElement('label', { style: lStyle }, "Price (GHS)"),
+            React.createElement('input', { type: "number", value: price, onChange: e => setPrice(e.target.value), placeholder: "0.00", style: iStyle }),
+            React.createElement('label', { style: lStyle }, "Description"),
+            React.createElement('textarea', { value: description, onChange: e => setDescription(e.target.value), rows: 4, style: { ...iStyle, resize: "vertical", lineHeight: 1.6 } }),
+            React.createElement('button', {
+              onClick: handleSave,
+              style: {
+                width: "100%", padding: "13px", borderRadius: "12px",
+                background: "linear-gradient(135deg,#b8860b,#d4a017)",
+                color: "#fff", border: "none", fontSize: "0.92rem", fontWeight: "700", cursor: "pointer",
+                boxShadow: "0 6px 20px rgba(184,134,11,0.25)",
+              }
+            }, saved ? "✅ Saved Successfully!" : "💾 Save Changes")
+          )
+        ) : React.createElement('div', {
+          style: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px" }
+        },
+          React.createElement('div', { style: { textAlign: "center", marginBottom: "28px" } },
+            React.createElement('div', { style: { fontSize: "3rem", marginBottom: "12px" } }, "📚"),
+            React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "1.2rem", fontWeight: "700", color: "#b8860b", marginBottom: "8px" } }, "Add a New Book"),
+            React.createElement('div', { style: { fontSize: "0.85rem", color: "#aaa", lineHeight: 1.7, maxWidth: "360px" } },
+              "Click below to add a new book to your store. Fill in the details, upload a cover and set the price."
+            )
+          ),
+          React.createElement('button', {
+            onClick: handleAddBook,
+            style: {
+              padding: "14px 36px", borderRadius: "30px",
+              background: "linear-gradient(135deg,#b8860b,#d4a017)",
+              color: "#fff", border: "none", fontSize: "0.95rem", fontWeight: "700", cursor: "pointer",
+              boxShadow: "0 6px 24px rgba(184,134,11,0.25)",
+            }
+          }, "➕ Add New Book")
+        )
+      )
+    )
+  );
+};
+
+const App = () => {
+  const [books, setBooks] = React.useState(initialBooks);
+  const [page, setPage] = React.useState("home");
+  const [adminInput, setAdminInput] = React.useState("");
+  const [adminError, setAdminError] = React.useState("");
+  const [showAdmin, setShowAdmin] = React.useState(false);
+  const [selectedBook, setSelectedBook] = React.useState(null);
+
+  const handleAdminLogin = () => {
+    if (adminInput === ADMIN_PASSWORD) {
+      setShowAdmin(true); setAdminError(""); setAdminInput("");
+    } else {
+      setAdminError("Incorrect password. Try again.");
+    }
+  };
+
+  const navBtn = (label, target) => React.createElement('button', {
+    onClick: () => setPage(target),
+    style: {
+      padding: "8px 16px", borderRadius: "20px", background: "transparent",
+      border: page === target ? "1.5px solid rgba(184,134,11,0.4)" : "1px solid transparent",
+      color: page === target ? "#b8860b" : "#888",
+      fontSize: "0.8rem", fontWeight: "500", cursor: "pointer", textTransform: "capitalize",
+    }
+  }, label);
+
+  const BookCard = ({ book }) => React.createElement('div', {
+    style: {
+      background: "rgba(255,255,255,0.8)", backdropFilter: "blur(20px)",
+      border: "1px solid rgba(184,134,11,0.12)", borderRadius: "20px",
+      overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+    }
+  },
+    React.createElement('div', { style: { height: "240px", overflow: "hidden" } },
+      book.cover
+        ? React.createElement('img', { src: book.cover, alt: book.title, style: { width: "100%", height: "100%", objectFit: "cover" } })
+        : React.createElement(BookPlaceholder, { title: book.title, subtitle: book.subtitle })
+    ),
+    React.createElement('div', { style: { padding: "18px" } },
+      React.createElement('div', { style: { fontSize: "0.62rem", color: "#b8860b", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "6px", fontWeight: "600" } }, book.category),
+      React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "1rem", fontWeight: "700", color: "#1a1a1a", marginBottom: "4px", lineHeight: 1.3 } }, book.title),
+      React.createElement('div', { style: { fontSize: "0.76rem", color: "#aaa", fontStyle: "italic", marginBottom: "10px" } }, book.subtitle),
+      React.createElement('div', { style: { fontSize: "0.82rem", color: "#666", lineHeight: 1.65, marginBottom: "16px" } }, book.description),
+      React.createElement('div', { style: { display: "flex", alignItems: "center", justifyContent: "space-between" } },
+        React.createElement('div', { style: { fontSize: "1.2rem", fontWeight: "700", color: "#b8860b" } },
+          book.price > 0
+            ? `GH₵ ${book.price.toFixed(2)}`
+            : React.createElement('span', { style: { fontSize: "0.75rem", color: "#ccc" } }, "Price TBA")
+        ),
+        React.createElement('button', {
+          onClick: () => book.price > 0 && setSelectedBook(book),
+          style: {
+            padding: "9px 18px", borderRadius: "20px",
+            background: book.price > 0 ? "linear-gradient(135deg,#b8860b,#d4a017)" : "rgba(0,0,0,0.04)",
+            color: book.price > 0 ? "#fff" : "#ccc",
+            border: "none", fontSize: "0.78rem", fontWeight: "700",
+            cursor: book.price > 0 ? "pointer" : "default",
+            boxShadow: book.price > 0 ? "0 4px 14px rgba(184,134,11,0.2)" : "none",
+          }
+        }, book.price > 0 ? "Buy Now" : "Soon")
+      )
+    )
+  );
+
+  return React.createElement('div', {
+    style: {
+      minHeight: "100vh",
+      background: "linear-gradient(150deg,#ffffff 0%,#faf8f4 30%,#f5f0e8 60%,#faf8f4 100%)",
+    }
+  },
+    // BG blobs
+    React.createElement('div', { style: { position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" } },
+      React.createElement('div', { style: { position: "absolute", top: "-15%", right: "-10%", width: "600px", height: "600px", borderRadius: "50%", background: "radial-gradient(circle,rgba(184,134,11,0.06) 0%,transparent 70%)" } }),
+      React.createElement('div', { style: { position: "absolute", bottom: "-10%", left: "-10%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle,rgba(184,134,11,0.04) 0%,transparent 70%)" } })
+    ),
+
+    // NAVBAR
+    React.createElement('nav', {
+      style: {
+        position: "sticky", top: 0, zIndex: 500,
+        background: "rgba(255,255,255,0.88)", backdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(184,134,11,0.12)",
+        boxShadow: "0 2px 20px rgba(0,0,0,0.04)",
+      }
+    },
+      React.createElement('div', {
+        style: { maxWidth: "1100px", margin: "0 auto", padding: "0 24px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }
+      },
+        React.createElement('div', {
+          style: { display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" },
+          onClick: () => setPage("home")
+        },
+          React.createElement(Cross, { size: 22 }),
+          React.createElement('div', null,
+            React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "1.05rem", fontWeight: "700", color: "#b8860b", letterSpacing: "0.5px" } }, "Kingdom Chronicles"),
+            React.createElement('div', { style: { fontSize: "0.58rem", color: "#bbb", letterSpacing: "2px", textTransform: "uppercase" } }, "Christian Ebook Store")
+          )
+        ),
+        React.createElement('div', { style: { display: "flex", alignItems: "center", gap: "4px" } },
+          navBtn("Home", "home"),
+          navBtn("Books", "books"),
+          navBtn("About", "about"),
+          React.createElement('button', {
+            onClick: () => setPage("admin"),
+            style: {
+              marginLeft: "8px", padding: "8px 18px", borderRadius: "20px",
+              background: "rgba(184,134,11,0.08)", border: "1.5px solid rgba(184,134,11,0.2)",
+              color: "#b8860b", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer",
+            }
+          }, "⚙ Admin")
+        )
+      )
+    ),
+
+    React.createElement('div', { style: { position: "relative", zIndex: 1 } },
+
+      // HOME
+      page === "home" ? React.createElement(React.Fragment, null,
+        React.createElement('div', { style: { textAlign: "center", padding: "90px 24px 60px", maxWidth: "780px", margin: "0 auto" } },
+          React.createElement('div', {
+            style: {
+              display: "inline-flex", alignItems: "center", gap: "8px",
+              background: "rgba(184,134,11,0.07)", border: "1px solid rgba(184,134,11,0.18)",
+              borderRadius: "30px", padding: "6px 20px",
+              fontSize: "0.7rem", color: "#b8860b", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "28px", fontWeight: "600",
+            }
+          }, "✦ Christian Fantasy Literature"),
+          React.createElement('h1', {
+            style: { fontFamily: "Georgia,serif", fontSize: "clamp(2.2rem,6vw,3.8rem)", fontWeight: "700", color: "#1a1a1a", lineHeight: 1.15, marginBottom: "20px" }
+          },
+            "Stories That", React.createElement('br'),
+            React.createElement('span', {
+              style: { background: "linear-gradient(135deg,#b8860b,#d4a017,#b8860b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }
+            }, "Strengthen the Faith")
+          ),
+          React.createElement('p', { style: { fontSize: "1.05rem", color: "#777", lineHeight: 1.85, marginBottom: "36px", maxWidth: "520px", margin: "0 auto 36px" } },
+            "Explore the world of Christian fantasy through gripping narratives, rich biblical history, and timeless spiritual truths."
+          ),
+          React.createElement('div', { style: { display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" } },
+            React.createElement('button', {
+              onClick: () => setPage("books"),
+              style: {
+                padding: "14px 32px", borderRadius: "30px",
+                background: "linear-gradient(135deg,#b8860b,#d4a017)",
+                color: "#fff", border: "none", fontSize: "0.92rem", fontWeight: "700", cursor: "pointer",
+                boxShadow: "0 8px 30px rgba(184,134,11,0.25)",
+              }
+            }, "Browse Books →"),
+            React.createElement('button', {
+              onClick: () => setPage("about"),
+              style: {
+                padding: "14px 32px", borderRadius: "30px",
+                background: "rgba(255,255,255,0.8)", border: "1.5px solid rgba(184,134,11,0.2)",
+                color: "#b8860b", fontSize: "0.92rem", fontWeight: "600", cursor: "pointer",
+              }
+            }, "Our Story")
+          )
+        ),
+
+        React.createElement('div', { style: { maxWidth: "860px", margin: "0 auto 60px", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "16px", padding: "0 24px" } },
+          [{ num: books.length, label: "Published Books" }, { num: "5+", label: "More Coming Soon" }, { num: "100%", label: "Faith-Inspired" }].map((s, i) =>
+            React.createElement('div', {
+              key: i,
+              style: { background: "rgba(255,255,255,0.7)", backdropFilter: "blur(16px)", border: "1px solid rgba(184,134,11,0.12)", borderRadius: "18px", padding: "24px", textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.04)" }
+            },
+              React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "2rem", fontWeight: "700", color: "#b8860b", marginBottom: "4px" } }, s.num),
+              React.createElement('div', { style: { fontSize: "0.75rem", color: "#aaa" } }, s.label)
+            )
+          )
+        ),
+
+        React.createElement('div', { style: { maxWidth: "1000px", margin: "0 auto", padding: "0 24px 80px" } },
+          React.createElement('div', { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "30px" } },
+            React.createElement('div', null,
+              React.createElement('div', { style: { fontSize: "0.7rem", color: "#b8860b", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "6px", fontWeight: "600" } }, "Featured"),
+              React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "1.6rem", fontWeight: "700", color: "#1a1a1a" } }, "Our Books")
+            ),
+            React.createElement('button', {
+              onClick: () => setPage("books"),
+              style: { padding: "8px 20px", borderRadius: "20px", background: "transparent", border: "1.5px solid rgba(184,134,11,0.25)", color: "#b8860b", fontSize: "0.8rem", cursor: "pointer" }
+            }, "View All →")
+          ),
+          React.createElement('div', { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: "24px" } },
+            books.map(book => React.createElement(BookCard, { key: book.id, book }))
+          )
+        ),
+
+        React.createElement('div', { style: { maxWidth: "1000px", margin: "0 auto 80px", padding: "0 24px" } },
+          React.createElement('div', {
+            style: {
+              background: "linear-gradient(135deg,rgba(184,134,11,0.07) 0%,rgba(212,160,23,0.05) 100%)",
+              border: "1px solid rgba(184,134,11,0.15)", borderRadius: "24px", padding: "50px 40px", textAlign: "center",
+              boxShadow: "0 8px 40px rgba(184,134,11,0.06)",
+            }
+          },
+            React.createElement('div', { style: { marginBottom: "16px" } }, React.createElement(Cross, { size: 28 })),
+            React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "1.5rem", fontWeight: "700", color: "#1a1a1a", marginBottom: "12px", lineHeight: 1.3 } }, "Faith-Filled Stories for the Believing Heart"),
+            React.createElement('div', { style: { fontSize: "0.92rem", color: "#888", maxWidth: "480px", margin: "0 auto 24px", lineHeight: 1.8 } },
+              "Every book is crafted to inspire, challenge, and deepen your walk with God through the power of storytelling."
+            ),
+            React.createElement('button', {
+              onClick: () => setPage("books"),
+              style: { padding: "12px 28px", borderRadius: "30px", background: "linear-gradient(135deg,#b8860b,#d4a017)", color: "#fff", border: "none", fontSize: "0.88rem", fontWeight: "700", cursor: "pointer", boxShadow: "0 6px 20px rgba(184,134,11,0.2)" }
+            }, "Explore All Books →")
+          )
+        )
+      ) : null,
+
+      // BOOKS
+      page === "books" ? React.createElement('div', { style: { maxWidth: "1000px", margin: "0 auto", padding: "50px 24px 80px" } },
+        React.createElement('div', { style: { textAlign: "center", marginBottom: "48px" } },
+          React.createElement('div', { style: { fontSize: "0.7rem", color: "#b8860b", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "10px", fontWeight: "600" } }, "Our Collection"),
+          React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "2rem", fontWeight: "700", color: "#1a1a1a", marginBottom: "12px" } }, "All Books"),
+          React.createElement('div', { style: { width: "60px", height: "2px", background: "linear-gradient(to right,#b8860b,#d4a017)", margin: "0 auto" } })
+        ),
+        React.createElement('div', { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: "24px" } },
+          books.map(book => React.createElement(BookCard, { key: book.id, book }))
+        )
+      ) : null,
+
+      // ABOUT
+      page === "about" ? React.createElement('div', { style: { maxWidth: "680px", margin: "0 auto", padding: "60px 24px 80px", textAlign: "center" } },
+        React.createElement('div', { style: { marginBottom: "18px" } }, React.createElement(Cross, { size: 28 })),
+        React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "2rem", fontWeight: "700", color: "#1a1a1a", marginBottom: "14px" } }, "About Kingdom Chronicles"),
+        React.createElement('div', { style: { width: "60px", height: "2px", background: "linear-gradient(to right,#b8860b,#d4a017)", margin: "0 auto 32px" } }),
+        ["Kingdom Chronicles is a Christian fantasy ebook store dedicated to bringing faith-filled stories to life. Our books explore the rich tapestry of biblical history through creative dramatization, vivid characters, and timeless spiritual truths.",
+          "Each story is crafted to entertain, inspire, and challenge the reader's faith — drawing from the depths of scripture while painting worlds that feel alive and real.",
+          "Our mission is simple: to tell stories that glorify God and ignite the imagination of believers everywhere."
+        ].map((p, i) =>
+          React.createElement('p', { key: i, style: { fontSize: "1rem", color: "#666", lineHeight: 1.9, marginBottom: "20px" } }, p)
+        ),
+        React.createElement('div', {
+          style: { marginTop: "36px", background: "rgba(255,255,255,0.7)", border: "1px solid rgba(184,134,11,0.15)", borderRadius: "20px", padding: "28px", boxShadow: "0 4px 20px rgba(0,0,0,0.04)" }
+        },
+          React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "1rem", fontStyle: "italic", color: "#888", lineHeight: 1.8 } },
+            '"Your word is a lamp to my feet and a light to my path."',
+            React.createElement('br'),
+            React.createElement('span', { style: { color: "#b8860b", fontSize: "0.82rem", fontWeight: "600" } }, "— Psalm 119:105")
+          )
+        ),
+        React.createElement('button', {
+          onClick: () => setPage("books"),
+          style: { marginTop: "32px", padding: "13px 30px", borderRadius: "30px", background: "linear-gradient(135deg,#b8860b,#d4a017)", color: "#fff", border: "none", fontSize: "0.9rem", fontWeight: "700", cursor: "pointer", boxShadow: "0 6px 20px rgba(184,134,11,0.2)" }
+        }, "Browse Our Books →")
+      ) : null,
+
+      // ADMIN LOGIN
+      page === "admin" && !showAdmin ? React.createElement('div', {
+        style: { minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }
+      },
+        React.createElement('div', {
+          style: {
+            background: "rgba(255,255,255,0.88)", backdropFilter: "blur(30px)",
+            border: "1px solid rgba(184,134,11,0.2)", borderRadius: "28px",
+            padding: "46px", maxWidth: "380px", width: "100%",
+            boxShadow: "0 32px 80px rgba(0,0,0,0.08)", textAlign: "center",
+          }
+        },
+          React.createElement('div', { style: { marginBottom: "16px" } }, React.createElement(Cross, { size: 28 })),
+          React.createElement('div', { style: { fontFamily: "Georgia,serif", fontSize: "1.3rem", fontWeight: "700", color: "#b8860b", marginBottom: "6px" } }, "Admin Access"),
+          React.createElement('div', { style: { fontSize: "0.75rem", color: "#bbb", marginBottom: "28px", letterSpacing: "1px", textTransform: "uppercase" } }, "Kingdom Chronicles Dashboard"),
+          React.createElement('input', {
+            type: "password", placeholder: "Enter admin password",
+            value: adminInput, onChange: e => setAdminInput(e.target.value),
+            onKeyDown: e => e.key === "Enter" && handleAdminLogin(),
+            style: {
+              width: "100%", padding: "13px 16px", borderRadius: "12px",
+              background: "rgba(255,255,255,0.9)", border: "1.5px solid rgba(184,134,11,0.2)",
+              color: "#1a1a1a", fontSize: "0.9rem", outline: "none", marginBottom: "14px", textAlign: "center", letterSpacing: "3px",
+            }
+          }),
+          adminError ? React.createElement('div', { style: { color: "#e53e3e", fontSize: "0.8rem", marginBottom: "12px" } }, adminError) : null,
+          React.createElement('button', {
+            onClick: handleAdminLogin,
+            style: {
+              width: "100%", padding: "13px", borderRadius: "12px",
+              background: "linear-gradient(135deg,#b8860b,#d4a017)",
+              color: "#fff", border: "none", fontSize: "0.92rem", fontWeight: "700", cursor: "pointer",
+              boxShadow: "0 6px 20px rgba(184,134,11,0.2)",
+            }
+          }, "Enter Dashboard →"),
+          React.createElement('button', {
+            onClick: () => setPage("home"),
+            style: { marginTop: "12px", background: "transparent", border: "none", color: "#ccc", fontSize: "0.8rem", cursor: "pointer" }
+          }, "← Back to Store")
+        )
+      ) : null,
+
+      // FOOTER
+      React.createElement('footer', {
+        style: { borderTop: "1px solid rgba(184,134,11,0.1)", padding: "40px 24px", textAlign: "center", background: "rgba(255,255,255,0.5)", backdropFilter: "blur(10px)" }
+      },
+        React.createElement('div', { style: { display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "10px" } },
+          React.createElement(Cross, { size: 20 }),
+          React.createElement('span', { style: { fontFamily: "Georgia,serif", fontSize: "1rem", fontWeight: "700", color: "#b8860b" } }, "Kingdom Chronicles")
+        ),
+        React.createElement('div', { style: { fontSize: "0.75rem", color: "#ccc", marginBottom: "16px" } }, "Christian Fantasy Ebooks · Ghana 🇬🇭"),
+        React.createElement('div', { style: { display: "flex", justifyContent: "center", gap: "20px" } },
+          ["Home", "Books", "About"].map(l =>
+            React.createElement('button', { key: l, onClick: () => setPage(l.toLowerCase()), style: { background: "transparent", border: "none", color: "#bbb", fontSize: "0.78rem", cursor: "pointer" } }, l)
+          )
+        ),
+        React.createElement('div', { style: { marginTop: "18px", fontSize: "0.68rem", color: "#ddd" } }, "© 2025 Kingdom Chronicles. All rights reserved.")
+      )
+    ),
+
+    // CHECKOUT MODAL
+    selectedBook ? React.createElement(CheckoutModal, { book: selectedBook, onClose: () => setSelectedBook(null) }) : null,
+
+    // ADMIN PANEL
+    showAdmin ? React.createElement(AdminPanel, { books, setBooks, onClose: () => { setShowAdmin(false); setPage("home"); } }) : null
+  );
+};
+
+ReactDOM.render(React.createElement(App), document.getElementById('root'));
+</script>
+</body>
+</html>
